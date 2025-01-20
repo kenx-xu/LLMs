@@ -35,9 +35,21 @@ def bpe_tokenize(text ,vocab):
 
 # 使用txt后的分词器
 def bpe_tokenize_by_txt(text,vocab):
-    token=[]
-    for word in text.split():
-        word=word+'</w>'
+    tokens=[]
+    while text:
+        longest_match=None
+        for token in vocab:
+            if text.startswith(token):
+                if not longest_match or len(token)>len(longest_match):
+                    longest_match=token
+            if longest_match:
+                tokens.append(longest_match)
+                text=text[len(longest_match):]
+            else:
+                tokens.append(token[0])
+                text=text[1:]
+    return tokens
+
 
 
 # 转化为索引数列表
@@ -46,7 +58,7 @@ def to_ind(texts,max_len,vocab,padding='post'):
     # 加载txt
     merge_list=load_merges()
     texts=[apply_merge(text,merge_list) for text in texts]
-    tokenize_seq=[bpe_tokenize(text,vocab) for text in texts]
+    tokenize_seq=[bpe_tokenize_by_txt(text,vocab) for text in texts]
     ind_seq=[[vocab.get(token,vocab.get('</uk>')) for token in tokens] for tokens in tokenize_seq]
     padded_seq=[]
     for seq in ind_seq:
